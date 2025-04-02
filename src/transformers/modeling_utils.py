@@ -4665,10 +4665,16 @@ class PreTrainedModel(nn.Module, ModuleUtilsMixin, GenerationMixin, PushToHubMix
         # download all python files from remote repos in Hugging Face Hub
         fs = HfFileSystem()
         for repo_id in download_set:
-            py_files = fs.glob(f"{repo_id}/*.py")
-            for f_path in py_files:
-                f_name = f_path.split("/")[-1]
-                fs.get_file(f_path, os.path.join(save_directory, f_name))
+            try:
+                py_files = fs.glob(f"{repo_id}/*.py")
+                for f_path in py_files:
+                    f_name = f_path.split("/")[-1]
+                    fs.get_file(f_path, os.path.join(save_directory, f_name))
+            except FileNotFoundError:
+                logger.warning(f"Repository not found for repo_id: {repo_id}.\n"
+                               "If the model is initialized from local repository - feel free to ignore this warning.\n"
+                               "Otherwise please make sure you specified the correct `repo_id` and `repo_type`.\n"
+                               "If you are trying to access a private or gated repo, make sure you are authenticated.")
 
         return model_config
 
